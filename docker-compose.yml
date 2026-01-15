@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: password_manager_app
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgres://postgres:postgres@postgres:5432/password_manager?sslmode=disable
+      - REDIS_ADDR=redis:6379
+      - SERVER_PORT=:8080
+      # OIDC and Encryption keys should be set via .env file or environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pm_network
+    restart: always
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: password_manager_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=password_manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pm_network
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: password_manager_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pm_network
+    restart: always
+
+networks:
+  pm_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
