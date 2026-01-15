@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/storage/redis/v3"
+	"github.com/gofiber/template/html/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/herdiagusthio/password-manager/config"
@@ -55,8 +56,11 @@ func main() {
 	})
 
 	// 4. Initialize Fiber App
+	engine := html.New("./views", ".html")
+	
 	app := fiber.New(fiber.Config{
 		AppName: "Password Manager API",
+		Views:   engine,
 	})
 	app.Use(logger.New())
 	app.Use(recover.New())
@@ -75,6 +79,7 @@ func main() {
 	authHttp.NewAuthHandler(app, authUC, sessionStore)
 	authHttp.NewSecretHandler(app, secretUC, sessionStore)
 	authHttp.NewBackupHandler(app, backupUC, sessionStore)
+	authHttp.NewUIHandler(app, secretUC, sessionStore)
 
 	// Health Check
 	app.Get("/health", func(c *fiber.Ctx) error {
