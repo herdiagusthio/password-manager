@@ -38,6 +38,15 @@ func (h *SecretHandler) requireAuth(c *fiber.Ctx) error {
 	return c.Next()
 }
 
+// Create creates a new secret
+// @Summary Create Secret
+// @Description Create a new encrypted secret
+// @Tags Secrets
+// @Accept json
+// @Produce json
+// @Param secret body object true "Secret Data"
+// @Success 201 {object} domain.Secret
+// @Router /api/secrets [post]
 func (h *SecretHandler) Create(c *fiber.Ctx) error {
 	type Request struct {
 		Title    string                 `json:"title"`
@@ -66,6 +75,13 @@ func (h *SecretHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(secret)
 }
 
+// List returns all secrets for the user
+// @Summary List Secrets
+// @Description Get all secrets (without passwords)
+// @Tags Secrets
+// @Produce json
+// @Success 200 {array} domain.Secret
+// @Router /api/secrets [get]
 func (h *SecretHandler) List(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	secrets, err := h.usecase.ListSecrets(c.Context(), userID)
@@ -75,6 +91,14 @@ func (h *SecretHandler) List(c *fiber.Ctx) error {
 	return c.JSON(secrets)
 }
 
+// Get returns a single secret (decrypted)
+// @Summary Get Secret
+// @Description Get a secret by ID with decrypted password
+// @Tags Secrets
+// @Produce json
+// @Param id path string true "Secret ID"
+// @Success 200 {object} domain.Secret
+// @Router /api/secrets/{id} [get]
 func (h *SecretHandler) Get(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	id := c.Params("id")
@@ -89,6 +113,16 @@ func (h *SecretHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(secret)
 }
 
+// Update modifies an existing secret
+// @Summary Update Secret
+// @Description Update secret details
+// @Tags Secrets
+// @Accept json
+// @Produce json
+// @Param id path string true "Secret ID"
+// @Param secret body object true "Secret Data"
+// @Success 200 {object} domain.Secret
+// @Router /api/secrets/{id} [put]
 func (h *SecretHandler) Update(c *fiber.Ctx) error {
 	// Simplied update...
 	type Request struct {
@@ -121,6 +155,13 @@ func (h *SecretHandler) Update(c *fiber.Ctx) error {
 	return c.JSON(secret)
 }
 
+// Delete removes a secret
+// @Summary Delete Secret
+// @Description Remove a secret by ID
+// @Tags Secrets
+// @Param id path string true "Secret ID"
+// @Success 204 "No Content"
+// @Router /api/secrets/{id} [delete]
 func (h *SecretHandler) Delete(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	id := c.Params("id")

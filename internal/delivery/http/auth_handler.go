@@ -25,6 +25,12 @@ func NewAuthHandler(app *fiber.App, authUC domain.AuthUsecase, store *session.St
 	auth.Get("/me", handler.Me)
 }
 
+// Login initiates the Google OIDC login flow
+// @Summary Login with Google
+// @Description Redirects user to Google for authentication
+// @Tags Auth
+// @Success 307 {string} string "Redirect to Google"
+// @Router /auth/login [get]
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	state := usecase.GenerateRandomState()
 	
@@ -42,6 +48,14 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	return c.Redirect(url)
 }
 
+// Callback handles the Google OIDC callback
+// @Summary Google Callback
+// @Description Exchanges code for token and creates user session
+// @Tags Auth
+// @Param code query string true "Auth Code"
+// @Param state query string true "State"
+// @Success 200 {object} domain.User
+// @Router /auth/callback [get]
 func (h *AuthHandler) Callback(c *fiber.Ctx) error {
 	code := c.Query("code")
 	state := c.Query("state")
@@ -75,6 +89,12 @@ func (h *AuthHandler) Callback(c *fiber.Ctx) error {
 	})
 }
 
+// Logout destroys the session
+// @Summary Logout
+// @Description Destroys user session
+// @Tags Auth
+// @Success 200 {string} string "Logged out"
+// @Router /auth/logout [get]
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	sess, err := h.store.Get(c)
 	if err != nil {
@@ -87,6 +107,12 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	return c.SendString("Logged out")
 }
 
+// Me returns current user info
+// @Summary Get Current User
+// @Description Returns the authenticated user's ID and Email
+// @Tags Auth
+// @Success 200 {object} map[string]string
+// @Router /auth/me [get]
 func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	sess, err := h.store.Get(c)
 	if err != nil {

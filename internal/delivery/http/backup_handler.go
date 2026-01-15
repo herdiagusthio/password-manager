@@ -42,6 +42,13 @@ func (h *BackupHandler) requireAuth(c *fiber.Ctx) error {
 	return c.Next()
 }
 
+// Export generates an encrypted backup
+// @Summary Export Secrets
+// @Description Download all secrets as an encrypted JSON file
+// @Tags Backup
+// @Produce octet-stream
+// @Success 200 {file} []byte
+// @Router /api/backup/export [get]
 func (h *BackupHandler) Export(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 
@@ -55,6 +62,15 @@ func (h *BackupHandler) Export(c *fiber.Ctx) error {
 	return c.Send(data)
 }
 
+// Import restores secrets from a backup file
+// @Summary Import Secrets
+// @Description Restore secrets from an encrypted backup file
+// @Tags Backup
+// @Accept multipart/form-data
+// @Produce json
+// @Param backup formData file true "Backup File (.enc)"
+// @Success 200 {object} map[string]string
+// @Router /api/backup/import [post]
 func (h *BackupHandler) Import(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 

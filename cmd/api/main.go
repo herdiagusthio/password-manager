@@ -13,7 +13,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/storage/redis/v3"
+	"github.com/gofiber/swagger"
 	"github.com/gofiber/template/html/v2"
+	_ "github.com/herdiagusthio/password-manager/docs" // load swagger docs
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/herdiagusthio/password-manager/config"
@@ -22,6 +24,19 @@ import (
 	"github.com/herdiagusthio/password-manager/internal/usecase"
 )
 
+// @title Password Manager API
+// @version 1.0
+// @description Secure Password Manager API with AES-GCM encryption and Google OIDC.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /
 func main() {
 	// 1. Load Configuration
 	cfg, err := config.LoadConfig(".")
@@ -74,6 +89,9 @@ func main() {
 	authUC := usecase.NewAuthUsecase(&cfg, userRepo)
 	secretUC := usecase.NewSecretUsecase(secretRepo, &cfg)
 	backupUC := usecase.NewBackupUsecase(secretRepo, &cfg)
+
+	// Swagger
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Handlers
 	authHttp.NewAuthHandler(app, authUC, sessionStore)
