@@ -1,0 +1,66 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: password_manager
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Run Unit Tests
+      run: go test -v ./pkg/... ./internal/usecase/...
+
+    # Note: Integration Tests in ./tests/integration require Testcontainers
+    # which works on GitHub Actions as is.
+    - name: Run Integration Tests
+      run: go test -v ./tests/integration/...
+      env:
+         # Testcontainers handles setting up ephemeral containers, 
+         # but requires Docker socket which GH Actions provides.
+         # This job uses service containers (postgres, redis) which MIGHT conflict on ports 
+         # if Testcontainers uses host ports. 
+         # Best practice: Let Testcontainers manage deps or usage 'service' containers and env vars.
+         # Our integration test suite uses Testcontainers, so we don't strictly need the services block above
+         # unless we change the test config. Let's keep it clean.
+         TEST_CONTAINERS: "true" 
