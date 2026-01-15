@@ -77,6 +77,10 @@ func main() {
 		AppName: "Password Manager API",
 		Views:   engine,
 	})
+
+	// Static Files
+	app.Static("/public", "./public")
+
 	app.Use(logger.New())
 	app.Use(recover.New())
 
