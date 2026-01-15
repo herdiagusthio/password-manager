@@ -2,15 +2,16 @@
 
 GoPass is a production-ready, highly secure Password Manager built with Golang, Fiber, and Clean Architecture. It features AES-GCM encryption, Google OIDC authentication, and enterprise-grade security practices.
 
-![Dashboard Screenshot](https://via.placeholder.com/800x400?text=GoPass+Dashboard+Preview)
-
 ## 🚀 Features
 
 -   **Zero-Knowledge Architecture**: Secrets are encrypted using AES-GCM before storage.
 -   **Authentication**: Secure Google OIDC login with Redis-backed session management.
 -   **Secrets Management**: Create, Read, Update, and Delete secrets securely.
 -   **Encrypted Backups**: Export and Import secrets as encrypted JSON files.
--   **Modern UI**: Server-side rendered UI using Fiber Templates and TailwindCSS.
+-   **Modern UI**: Server-side rendered UI (Fiber Templates + TailwindCSS) with:
+    -   Secure Login Page
+    -   Dashboard with Copy-to-Clipboard & Reveal functionality
+    -   Add/Edit/Delete Modals
 -   **Documentation**: Interactive Swagger API documentation.
 
 ## 🛠 Tech Stack
@@ -20,6 +21,8 @@ GoPass is a production-ready, highly secure Password Manager built with Golang, 
 -   **Database**: PostgreSQL 16
 -   **Cache/Session**: Redis 7
 -   **Configuration**: Viper
+-   **Testing**: Testcontainers (Integration), Testify & MockGen (Unit)
+-   **CI/CD**: GitHub Actions
 -   **Containerization**: Docker & Docker Compose
 
 ## 📦 Installation & Setup
@@ -39,25 +42,16 @@ cd password-manager
 
 ### 2. Configure Environment
 
-Create a `.env` file or export the following variables (Docker Compose uses environment variables):
+Copy the example configuration file and fill in your credentials:
 
 ```bash
-# App
-SERVER_PORT=:8080
-ENCRYPTION_KEY=your_32_byte_master_key_here_1234 # MUST be 32 bytes for AES-256
-
-# Database
-DB_SOURCE=postgresql://postgres:postgres@postgres:5432/password_manager?sslmode=disable
-
-# Redis
-REDIS_ADDR=redis:6379
-
-# Google OAuth2
-GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_client_secret
-GOOGLE_REDIRECT_URL=http://localhost:8080/auth/callback
-SESSION_SECRET=super-secret-session-key
+cp .env.example .env
 ```
+
+**Required Variables**:
+-   `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: From Google Cloud Console.
+-   `ENCRYPTION_KEY`: A **32-byte** hex string for AES-256 encryption.
+-   `SESSION_SECRET`: Random string for signing session cookies.
 
 ### 3. Run with Docker Compose
 
@@ -86,12 +80,24 @@ Interactive API documentation is available at:
 
 ## 🧪 Testing
 
+### Unit Tests
+Run table-driven unit tests for the core business logic (UseCases):
+```bash
+go test -v ./internal/usecase/...
+```
+
 ### Integration Tests
 Run integration tests using Testcontainers (requires Docker):
-
 ```bash
 go test -v ./tests/integration/...
 ```
+
+## ⚙️ CI/CD
+
+This project uses **GitHub Actions** for Continuous Integration. On every push to `main`, the workflow:
+1.  Builds the application.
+2.  Runs Unit Tests.
+3.  Runs Integration Tests (spinning up ephemeral Postgres/Redis containers).
 
 ## 🛡 Security Notes
 
